@@ -18,8 +18,12 @@ const axios = require("axios");
 
 // Define uma rota POST chamada "/authenticate" que será acessada quando uma solicitação POST for feita para o servidor
 app.post("/authenticate", async (req, res) => {
-  // Extrai o valor da propriedade 'username' do corpo da solicitação
+  // Verifica se o 'username' foi fornecido no corpo da solicitação
   const { username } = req.body;
+  console.log(req.body);
+  if (!username) {
+    return res.status(400).json({ error: "Username is required" });
+  }
 
   // Tenta realizar uma requisição HTTP do tipo PUT para autenticar o usuário no Chat Engine
   try {
@@ -29,15 +33,20 @@ app.post("/authenticate", async (req, res) => {
     const r = await axios.put(
       "https://api.chatengine.io/users/",
       { username: username, secret: username, first_name: username },
-      { headers: { "Private-Key": "26ad6b88-0889-47d7-a621-9640bfd97793" } }
+      { headers: { "Private-Key": "7269c120-e94f-4b37-bdd6-0c636bd77d4c" } }
     );
 
     // Retorna a resposta do Chat Engine como JSON com o status da resposta
     return res.status(r.status).json(r.data);
   } catch (e) {
     // Se ocorrer um erro durante a requisição, retorna a resposta de erro como JSON
-    return res.status(e.response.status).json(e.response.data);
+    const status = e.response ? e.response.status : 500;
+    const data = e.response ? e.response.data : { error: "Internal Server Error" };
+    return res.status(status).json(data);
   }
 });
 
-app.listen(3001);
+// Inicia o servidor na porta 3001
+app.listen(3001, () => {
+  console.log("Server is running on port 3001");
+});
